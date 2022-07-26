@@ -6,7 +6,7 @@ const bucketName = 'boxdrop-backend.appspot.com';
 const bucket = storage.bucket(bucketName);
 
 /**
- * Returns a list of metadata for all of a user's files
+ * Query a list of metadata for all of a user's files
  * @param id the user's id
  * @returns the metadata list
  */
@@ -17,7 +17,7 @@ export async function getAll(id: number) {
 }
 
 /**
- * Returns the metadata for a specified file
+ * Query metadata for a specified file
  * @param id the user's id
  * @param name the file name
  * @returns the metadata
@@ -30,7 +30,7 @@ export async function getMetadata(id: number, name: string) {
 }
 
 /**
- * Downloads a specified file as a buffer
+ * Download a specified file as a buffer
  * @param id the user's id
  * @param name the file name
  * @returns the file buffer
@@ -43,7 +43,7 @@ export async function download(id: number, name: string) {
 }
 
 /**
- * Uploads a file to Google Cloud Storage
+ * Upload a file to Google Cloud Storage
  * @param id the user's id
  * @param file the file to upload
  * @returns the upload response from Google Cloud Storage
