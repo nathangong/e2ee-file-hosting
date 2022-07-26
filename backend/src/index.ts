@@ -1,4 +1,4 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import { Request, Response } from 'express'
 import user from './routes/user';
 import file from './routes/file'
@@ -15,7 +15,7 @@ app.use(fileUpload({
     limits: {
         fileSize: 2e6 // 2MB max file(s) size
     },
-    abortOnLimit: true,    
+    abortOnLimit: true,
     useTempFiles: true,
     tempFileDir: '/tmp/'
 }));
@@ -31,8 +31,8 @@ app.listen(port, () => {
 app.use('/user', user);
 app.use('/file', file);
 
-// error handling
-app.use((err: Error | BoxdropError, req: Request, res: Response, next: NextFunction) => {
+// Error handling middleware
+app.use((err: Error | BoxdropError, req: Request, res: Response) => {
     let customError = err;
 
     if (!(err instanceof BoxdropError)) {

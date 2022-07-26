@@ -1,3 +1,4 @@
+// Custom class for error handling
 export class BoxdropError extends Error {
     statusCode: number;
 

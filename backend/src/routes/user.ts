@@ -1,13 +1,12 @@
 import express from 'express';
 import validator from 'validator';
-import bcrypt from 'bcrypt';
 import * as User from '../models/User';
-import { createToken, handleAuthentication, verifyToken } from '../auth';
+import { createToken } from '../auth';
 import { asyncHandler } from '../util';
 import { BoxdropError } from '../models/BoxdropError';
+import handleAuth from '../middleware/handleAuth.middleware';
 
 const router = express.Router();
-const salt = 10;
 const providers = ['email', 'google'];
 
 router.post('/register', asyncHandler(async (req, res) => {
@@ -24,8 +23,7 @@ router.post('/register', asyncHandler(async (req, res) => {
 
     // store user on google cloud
     if (provider === 'email') {
-        const hash = await bcrypt.hash(password, salt);
-        return res.send(await User.createWithEmail(email, hash));
+        return res.send(await User.createWithEmail(email, password));
     } else {
         return res.send(await User.createWithProvider(email, provider));
     }
@@ -46,8 +44,10 @@ router.post('/login', asyncHandler(async (req, res) => {
     return res.json({'access_token': token});
 }));
 
+router.use('/me', handleAuth);
+
 router.get('/me', asyncHandler(async (req, res) => {
-    const id = handleAuthentication(req.headers.authorization);
+    const id = res.locals.id;
 
     const user = await User.get(id);
     if (user === undefined) {

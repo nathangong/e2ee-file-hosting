@@ -1,23 +1,23 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv'
-import { BoxdropError } from './models/BoxdropError';
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
 
+/**
+ * Sign the user's id into a JSON Web Token string
+ * @param id the user's id
+ * @returns the JSON Web Token string
+ */
 export function createToken(id: string) {
-    return jwt.sign({ id }, secretKey, { expiresIn: '30m' });
+    return jwt.sign({ id }, secretKey, { expiresIn: '2h' });
 }
 
+/**
+ * Verify auth token and decode user id
+ * @param token the token
+ * @returns the decoded user id
+ */
 export function verifyToken(token: string) {
     return jwt.verify(token, secretKey);
-}
-
-export function handleAuthentication(bearerHeader: string) {
-    if (bearerHeader == null) {
-        throw new BoxdropError('Authorization required', 401);
-    }
-    const token = bearerHeader.split(' ')[1];
-    const verification = verifyToken(token) as JwtPayload;
-    return verification.id;
 }
