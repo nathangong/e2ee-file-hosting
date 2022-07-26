@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv'
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
@@ -10,7 +10,7 @@ const secretKey = process.env.SECRET_KEY;
  * @returns the JSON Web Token string
  */
 export function createToken(id: string) {
-    return jwt.sign({ id }, secretKey, { expiresIn: '2h' });
+  return jwt.sign({ id }, secretKey, { expiresIn: "2h" });
 }
 
 /**
@@ -19,5 +19,5 @@ export function createToken(id: string) {
  * @returns the decoded user id
  */
 export function verifyToken(token: string) {
-    return jwt.verify(token, secretKey);
+  return jwt.verify(token, secretKey);
 }

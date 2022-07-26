@@ -1,9 +1,9 @@
 import { Datastore } from "@google-cloud/datastore";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 import { BoxdropError } from "./BoxdropError";
 
 const datastore = new Datastore({
-    projectId: 'boxdrop-backend'
+  projectId: "boxdrop-backend",
 });
 
 /**
@@ -13,9 +13,9 @@ const datastore = new Datastore({
  * @returns a list of users with the email
  */
 async function queryEmail(email: string) {
-    const query = datastore.createQuery("users").filter('email', email);
-    const queryRes = await query.run();
-    return queryRes[0];
+  const query = datastore.createQuery("users").filter("email", email);
+  const queryRes = await query.run();
+  return queryRes[0];
 }
 
 /**
@@ -23,10 +23,10 @@ async function queryEmail(email: string) {
  * @param id the id
  * @returns the user data
  */
- export async function get(id: number) {
-    const key = datastore.key(['users', datastore.int(id)]);
-    const res = await datastore.get(key);
-    return res[0];
+export async function get(id: number) {
+  const key = datastore.key(["users", datastore.int(id)]);
+  const res = await datastore.get(key);
+  return res[0];
 }
 
 /**
@@ -37,22 +37,22 @@ async function queryEmail(email: string) {
  * @returns the save response from datastore
  */
 export async function createWithEmail(email: string, password: string) {
-    const queryRes = await queryEmail(email);
-    if (queryRes.length > 0) {
-        throw new BoxdropError(`User with email ${email} already exists`, 400);
-    }
+  const queryRes = await queryEmail(email);
+  if (queryRes.length > 0) {
+    throw new BoxdropError(`User with email ${email} already exists`, 400);
+  }
 
-    const salt = 10;
-    const hash = await bcrypt.hash(password, salt);
-    const res = await datastore.save({
-        key: datastore.key(['users']),
-        data: {
-            email,
-            hash,
-            provider: 'email'
-        }
-    });
-    return res;
+  const salt = 10;
+  const hash = await bcrypt.hash(password, salt);
+  const res = await datastore.save({
+    key: datastore.key(["users"]),
+    data: {
+      email,
+      hash,
+      provider: "email",
+    },
+  });
+  return res;
 }
 
 /**
@@ -62,19 +62,19 @@ export async function createWithEmail(email: string, password: string) {
  * @returns the save response from datastore
  */
 export async function createWithProvider(email: string, provider: string) {
-    const queryRes = await queryEmail(email);
-    if (queryRes.length > 0) {
-        throw new BoxdropError(`User with email ${email} already exists`, 400);
-    }
+  const queryRes = await queryEmail(email);
+  if (queryRes.length > 0) {
+    throw new BoxdropError(`User with email ${email} already exists`, 400);
+  }
 
-    const res = await datastore.save({
-        key: datastore.key(['users']),
-        data: {
-            email,
-            provider
-        }
-    });
-    return res;
+  const res = await datastore.save({
+    key: datastore.key(["users"]),
+    data: {
+      email,
+      provider,
+    },
+  });
+  return res;
 }
 
 /**
@@ -84,14 +84,14 @@ export async function createWithProvider(email: string, provider: string) {
  * @returns the user data
  */
 export async function loginWithEmail(email: string, password: string) {
-    const queryRes = await queryEmail(email);
-    if (queryRes.length === 0) {
-        throw new BoxdropError(`User with ${email} doesn't exist`, 404);
-    }
-    const user = queryRes[0];
-    const valid = bcrypt.compare(password, user.password);
-    if (!valid) {
-        throw new BoxdropError('Invalid password', 400);
-    }
-    return user[datastore.KEY];
+  const queryRes = await queryEmail(email);
+  if (queryRes.length === 0) {
+    throw new BoxdropError(`User with ${email} doesn't exist`, 404);
+  }
+  const user = queryRes[0];
+  const valid = bcrypt.compare(password, user.password);
+  if (!valid) {
+    throw new BoxdropError("Invalid password", 400);
+  }
+  return user[datastore.KEY];
 }

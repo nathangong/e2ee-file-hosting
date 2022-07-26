@@ -1,8 +1,8 @@
-import { Storage } from '@google-cloud/storage'
+import { Storage } from "@google-cloud/storage";
 import { UploadedFile } from "express-fileupload";
 
 const storage = new Storage();
-const bucketName = 'boxdrop-backend.appspot.com';
+const bucketName = "boxdrop-backend.appspot.com";
 const bucket = storage.bucket(bucketName);
 
 /**
@@ -11,9 +11,9 @@ const bucket = storage.bucket(bucketName);
  * @returns the metadata list
  */
 export async function getAll(id: number) {
-    const [files] =  await bucket.getFiles({ prefix: id.toString() });
-    const names = files.map(file => file.metadata);
-    return names;
+  const [files] = await bucket.getFiles({ prefix: id.toString() });
+  const names = files.map((file) => file.metadata);
+  return names;
 }
 
 /**
@@ -23,10 +23,10 @@ export async function getAll(id: number) {
  * @returns the metadata
  */
 export async function getMetadata(id: number, name: string) {
-    const path = id + '/' + name;
-    const [metadata] = await bucket.file(path).getMetadata();
+  const path = id + "/" + name;
+  const [metadata] = await bucket.file(path).getMetadata();
 
-    return metadata;
+  return metadata;
 }
 
 /**
@@ -36,10 +36,10 @@ export async function getMetadata(id: number, name: string) {
  * @returns the file buffer
  */
 export async function download(id: number, name: string) {
-    const path = id + '/' + name;
-    const [buffer] = await bucket.file(path).download();
+  const path = id + "/" + name;
+  const [buffer] = await bucket.file(path).download();
 
-    return buffer;
+  return buffer;
 }
 
 /**
@@ -49,11 +49,11 @@ export async function download(id: number, name: string) {
  * @returns the upload response from Google Cloud Storage
  */
 export async function upload(id: number, file: UploadedFile) {
-    const filePath = file.tempFilePath;
-    const destFileName = id + "/" + file.name;
+  const filePath = file.tempFilePath;
+  const destFileName = id + "/" + file.name;
 
-    const res = await bucket.upload(filePath, {
-        destination: destFileName
-    });
-    return res;
+  const res = await bucket.upload(filePath, {
+    destination: destFileName,
+  });
+  return res;
 }
