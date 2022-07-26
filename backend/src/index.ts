@@ -1,20 +1,45 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import { Request, Response } from 'express'
-import users from './routes/users';
+import user from './routes/user';
+import file from './routes/file'
 import dotenv from 'dotenv';
+import fileUpload from 'express-fileupload';
+import { BoxdropError } from './models/BoxdropError';
 
 dotenv.config();
 
 const app = express();
 const port = 8080;
 app.use(express.json());
+app.use(fileUpload({
+    limits: {
+        fileSize: 2e6 // 2MB max file(s) size
+    },
+    abortOnLimit: true,    
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
+}));
 
 app.get('/', (req: Request, res: Response) => {
-    res.send("Hello world!");
+    return res.send("Hello world!");
 });
 
 app.listen(port, () => {
     console.log(`App is running at port ${port}`)
 });
 
-app.use('/users', users);
+app.use('/user', user);
+app.use('/file', file);
+
+// error handling
+app.use((err: Error | BoxdropError, req: Request, res: Response, next: NextFunction) => {
+    let customError = err;
+
+    if (!(err instanceof BoxdropError)) {
+        customError = new BoxdropError(
+            'Internal server error',
+        );
+    }
+
+    res.status((customError as BoxdropError).statusCode).json({error: err.message});
+});
