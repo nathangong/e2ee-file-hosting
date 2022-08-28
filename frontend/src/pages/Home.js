@@ -23,7 +23,7 @@ export default function Home(props) {
 
     setLoading(true);
     fetchData();
-  }, [accessToken]);
+  }, [accessToken, fetchData]);
 
   async function fetchData() {
     // fetch entities
@@ -84,7 +84,7 @@ export default function Home(props) {
         'Authorization': `Bearer ${accessToken}`,
       },
     };
-    const response = await toast.promise(
+    await toast.promise(
       fetch(BACKEND_URL + '/file/' + focused, requestOptions), {
         pending: "Deleting file...",
         success: "File deleted successfully!",

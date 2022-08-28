@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
       Cookies.remove('accessToken');
     }
     console.log(accessToken);
-  }, [accessToken]);
+  }, [accessToken, navigate]);
 
   const value = {
     accessToken,
