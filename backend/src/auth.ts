@@ -10,7 +10,7 @@ const secretKey = process.env.SECRET_KEY;
  * @returns the JSON Web Token string
  */
 export function createToken(id: string) {
-  return jwt.sign({ id }, secretKey, { expiresIn: "2h" });
+  return jwt.sign({ id }, secretKey, { expiresIn: "30d" });
 }
 
 /**

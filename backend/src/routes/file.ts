@@ -10,18 +10,26 @@ const router = express.Router();
 
 router.use(handleAuth);
 
-router.get(
-  "/",
-  asyncHandler(async (req, res) => {
+router.get("/", asyncHandler(async (req, res) => {
     const id = res.locals.id;
 
     return res.send(await File.getAll(id));
   })
 );
 
-router.get(
-  "/:name",
-  asyncHandler(async (req, res) => {
+router.post("/upload", asyncHandler(async (req, res) => {
+  const id = res.locals.id;
+  if (!req.files || Object.keys(req.files).length === 0) {
+    throw new BoxdropError("No files were uploaded", 400);
+  }
+  const file = req.files.file as UploadedFile;
+  await File.upload(id, file);
+
+  return res.send("file recieved!");
+})
+);
+
+router.get("/:name", asyncHandler(async (req, res) => {
     const id = res.locals.id;
 
     const name = req.params.name;
@@ -36,18 +44,12 @@ router.get(
   })
 );
 
-router.post(
-  "/upload",
-  asyncHandler(async (req, res) => {
-    const id = res.locals.id;
-    if (!req.files || Object.keys(req.files).length === 0) {
-      throw new BoxdropError("No files were uploaded", 400);
-    }
-    const file = req.files.file as UploadedFile;
-    await File.upload(id, file);
+router.delete("/:name", asyncHandler(async (req, res) => {
+  const id = res.locals.id;
+  const name = req.params.name;
 
-    return res.send("file recieved!");
-  })
-);
+  await File.trash(id, name);
+  return res.send("file deleted!");
+}))
 
 export default router;

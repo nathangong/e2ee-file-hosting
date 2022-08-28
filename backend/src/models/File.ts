@@ -57,3 +57,16 @@ export async function upload(id: number, file: UploadedFile) {
   });
   return res;
 }
+
+/**
+ * Delete a file from Google Cloud Storage
+ * @param id the user's id
+ * @param file the file to delete
+ * @returns the upload response from Google Cloud Storage
+ */
+export async function trash(id: number, file: string) {
+  const destFileName = id + "/" + file;
+
+  const res = await bucket.file(destFileName).delete();
+  return res;
+}

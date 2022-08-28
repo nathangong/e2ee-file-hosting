@@ -89,7 +89,7 @@ export async function loginWithEmail(email: string, password: string) {
     throw new BoxdropError(`User with ${email} doesn't exist`, 404);
   }
   const user = queryRes[0];
-  const valid = bcrypt.compare(password, user.password);
+  const valid = await bcrypt.compare(password, user.hash);
   if (!valid) {
     throw new BoxdropError("Invalid password", 400);
   }

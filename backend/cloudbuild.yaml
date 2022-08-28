@@ -1,0 +1,13 @@
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/boxdrop-backend/kush', '.']
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/boxdrop-backend/kush']
+# Deploy container image to Cloud Run
+# - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+#   entrypoint: gcloud
+#   args: ['run', 'deploy', 'backend', '--image', 'gcr.io/boxdrop-backend/kush', '--region', 'us-central1']
+images:
+- gcr.io/boxdrop-backend/kush

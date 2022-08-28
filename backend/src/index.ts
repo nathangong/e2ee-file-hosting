@@ -1,18 +1,20 @@
-import express from "express";
+import express, { NextFunction } from "express";
 import { Request, Response } from "express";
 import user from "./routes/user";
 import file from "./routes/file";
 import dotenv from "dotenv";
 import fileUpload from "express-fileupload";
 import { BoxdropError } from "./models/BoxdropError";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 app.use(express.json());
+app.use(cors());
 app.use(
-  fileUpload({
+fileUpload({
     limits: {
       fileSize: 2e6, // 2MB max file(s) size
     },
@@ -34,7 +36,7 @@ app.use("/user", user);
 app.use("/file", file);
 
 // Error handling middleware
-app.use((err: Error | BoxdropError, req: Request, res: Response) => {
+app.use((err: Error | BoxdropError, req: Request, res: Response, next: NextFunction) => {
   let customError = err;
 
   if (!(err instanceof BoxdropError)) {
