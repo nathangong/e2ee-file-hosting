@@ -23,7 +23,7 @@ export default function Home(props) {
 
     setLoading(true);
     fetchData();
-  }, [accessToken, fetchData]);
+  }, [accessToken]);
 
   async function fetchData() {
     // fetch entities
@@ -56,6 +56,8 @@ export default function Home(props) {
     data = await response.json();
     if (!data.error) {
       setEmail(data.email);
+    } else {
+      console.log(data.error);
     }
 
     setLoading(false);
