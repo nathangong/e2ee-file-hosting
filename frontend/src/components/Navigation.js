@@ -16,7 +16,7 @@ export default function Navigation() {
                 <img className="h-9 w-9" src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="Gong Drive Logo" />
               </div>
               <div className="ml-4 text-3xl font-bold">
-                Gong Drive
+                BoxDrop
               </div>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">

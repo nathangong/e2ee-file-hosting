@@ -43,7 +43,7 @@ export default function Signin() {
               src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg"
               alt="Workflow"
             />
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to GongDrive</h2>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to BoxDrop</h2>
           </div>
           {error && (
             <div
@@ -110,6 +110,7 @@ export default function Signin() {
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   value={rememberMe}
                   onChange={(e) => setRememberMe(e.target.value) }
+                  defaultChecked={true}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                   Remember me
@@ -117,8 +118,8 @@ export default function Signin() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot your password?
+                <a href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  Don't have an account?
                 </a>
               </div>
             </div>
