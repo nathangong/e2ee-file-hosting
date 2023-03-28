@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { BACKEND_URL } from "../Constants";
+import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Signup() {
@@ -9,7 +9,8 @@ export default function Signup() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { accessToken, setAccessToken } = useAuth();
+  const { setAccessToken } = useAuth();
+  const user = useUserActions();
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -22,24 +23,16 @@ export default function Signup() {
       return setError("Password needs to be at least 6 characters");
     }
 
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password, provider: "email" }),
-    };
-
     setLoading(true);
     setError("");
-    fetch(BACKEND_URL + '/user/register', requestOptions)
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setAccessToken(data.access_token);
-        }
-        setLoading(false);
-      });
+    user.register(email, password).then(data => {
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setAccessToken(data.access_token);
+      }
+      setLoading(false);
+    });
   }
 
   return (

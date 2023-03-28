@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { BACKEND_URL } from "../Constants";
+import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Signin() {
@@ -9,28 +9,21 @@ export default function Signin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { setAccessToken } = useAuth();
+  const user = useUserActions();
 
   function handleSubmit(event) {
     event.preventDefault();
 
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password, provider: 'email' }),
-    };
-
     setLoading(true);
     setError("");
-    fetch(BACKEND_URL + '/user/login', requestOptions)
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setAccessToken(data.access_token);
-        }
-        setLoading(false);
-      });
+    user.login(email, password).then(data => {
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setAccessToken(data.access_token);
+      }
+      setLoading(false);
+    });
   }
 
   return (

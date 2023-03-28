@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { BACKEND_URL } from "../Constants";
 import formatBytes from "../util/formatBytes";
 import download from "downloadjs";
 import Page from "./Page";
@@ -8,15 +7,18 @@ import formatDate from "../util/formatDate";
 import { ArrowDownTrayIcon, ArrowUpOnSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useFileActions } from "../actions/file";
+import { useUserActions } from "../actions/user";
 
-export default function Home(props) {
+export default function Home() {
   const [entities, setEntities] = useState([]);
   const [email, setEmail] = useState();
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState();
   const { accessToken } = useAuth();
   const hiddenFileInput = useRef(null);
-  //TODO: simplify fetches
+  const file = useFileActions();
+  const user = useUserActions();
 
   useEffect(() => {
     if (accessToken === 'loading') return;
@@ -27,67 +29,34 @@ export default function Home(props) {
 
   async function fetchData() {
     // fetch entities
-    let requestOptions = {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    };
-
-    let response = await fetch(BACKEND_URL + '/file', requestOptions);
-    let data = await response.json();
-    data.map(entity => {
+    const files = await file.getAll();
+    files.map(entity => {
       entity.name = entity.name.split("/").slice(1).join("/");
       return entity;
     })
-
-    setEntities(data);
+    setEntities(files);
 
     // fetch email
-    requestOptions = {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    };
-    response = await fetch(BACKEND_URL + '/user/me', requestOptions);
-    data = await response.json();
-    if (!data.error) {
-      setEmail(data.email);
+    const userData = await user.getData();
+    if (!userData.error) {
+      setEmail(userData.email);
     } else {
-      console.log(data.error);
+      console.log(userData.error);
     }
 
     setLoading(false);
   }
 
   async function downloadFile() {
-    const requestOptions = {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    };
-
-    const response = await fetch(BACKEND_URL + '/file/' + focused, requestOptions);
-    const blob = await response.blob();
+    const blob = await file.get(focused);
     download(blob, focused);
   }
 
   async function deleteFile(event) {
     event.preventDefault();
 
-    const requestOptions = {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    };
     await toast.promise(
-      fetch(BACKEND_URL + '/file/' + focused, requestOptions), {
+      file.remove(focused), {
         pending: "Deleting file...",
         success: "File deleted successfully!",
         error: "Sorry, we ran into an error",
@@ -98,7 +67,6 @@ export default function Home(props) {
     );
     setFocused(null);
     fetchData();
-
   }
 
   function handleUpload(event) {
@@ -106,20 +74,10 @@ export default function Home(props) {
   }
 
   async function handleFileChange(event) {
-    const fileUploaded = event.target.files[0];
-    
-    const data = new FormData();
-    data.append('file', fileUploaded);
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: data
-    };
-    
-    const response = await toast.promise(
-      fetch(BACKEND_URL + '/file/upload', requestOptions), {
+    const uploadedFile = event.target.files[0];
+        
+    await toast.promise(
+      file.upload(uploadedFile), {
         pending: "Uploading file...",
         success: "File uploaded successfully!",
         error: "Sorry, we ran into an error",
@@ -128,7 +86,6 @@ export default function Home(props) {
         hideProgressBar: true,
       }
     );
-    console.log(response);
     fetchData();
   }
 
@@ -137,7 +94,6 @@ export default function Home(props) {
   }
 
   async function handleBlur(name) {
-    console.log(document.activeElement);
     setFocused(null);
   }
 
@@ -202,9 +158,6 @@ export default function Home(props) {
                     >
                       Size
                     </th>
-                    {/* <th scope="col" className="relative px-6 py-3">
-                      <span className="sr-only">Edit</span>
-                    </th> */}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -214,13 +167,6 @@ export default function Home(props) {
                         <div
                           className="flex items-center"
                         >
-                          {/* <div className="flex-shrink-0 h-10 w-10">
-                            <img
-                              className="h-10 w-10 rounded-full"
-                              src={story.image}
-                              alt=""
-                            />
-                          </div> */}
                           <div>
                             <div className="text-sm font-medium text-gray-900">
                               {entity.name}
