@@ -9,7 +9,9 @@ import handleAuth from "../middleware/handleAuth.middleware";
 const router = express.Router();
 const providers = ["email", "google"];
 
-router.post("/register", asyncHandler(async (req, res) => {
+router.post(
+  "/register",
+  asyncHandler(async (req, res) => {
     const body = req.body;
     const { email, password, provider } = body;
 
@@ -36,7 +38,9 @@ router.post("/register", asyncHandler(async (req, res) => {
   })
 );
 
-router.post("/login", asyncHandler(async (req, res) => {
+router.post(
+  "/login",
+  asyncHandler(async (req, res) => {
     const body = req.body;
     const { email, password, provider } = body;
 
@@ -54,7 +58,9 @@ router.post("/login", asyncHandler(async (req, res) => {
 
 router.use("/me", handleAuth);
 
-router.get("/me", asyncHandler(async (req, res) => {
+router.get(
+  "/me",
+  asyncHandler(async (req, res) => {
     const id = res.locals.id;
 
     const user = await User.get(id);

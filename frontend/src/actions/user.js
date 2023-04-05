@@ -10,8 +10,8 @@ function useUserActions() {
     return {
       method,
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        "Content-type": "application/json",
       },
       body,
     };
@@ -24,19 +24,30 @@ function useUserActions() {
   };
 
   async function getData() {
-    const response = await fetch(url + 'me', requestOptions('GET'));
+    const response = await fetch(url + "me", requestOptions("GET"));
     return await response.json();
   }
 
   async function login(email, password) {
-    const body = JSON.stringify({ email: email, password: password, provider: "email" });
-    const response = await fetch(url + 'login', requestOptions('POST', body))
+    const body = JSON.stringify({
+      email: email,
+      password: password,
+      provider: "email",
+    });
+    const response = await fetch(url + "login", requestOptions("POST", body));
     return await response.json();
   }
 
   async function register(email, password) {
-    const body = JSON.stringify({ email: email, password: password, provider: "email" });
-    const response = await fetch(url + 'register', requestOptions('POST', body))
+    const body = JSON.stringify({
+      email: email,
+      password: password,
+      provider: "email",
+    });
+    const response = await fetch(
+      url + "register",
+      requestOptions("POST", body)
+    );
     return await response.json();
   }
 }

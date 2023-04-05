@@ -14,7 +14,7 @@ const port = process.env.PORT || 8080;
 app.use(express.json());
 app.use(cors());
 app.use(
-fileUpload({
+  fileUpload({
     limits: {
       fileSize: 2e6, // 2MB max file(s) size
     },
@@ -36,14 +36,21 @@ app.use("/user", user);
 app.use("/file", file);
 
 // Error handling middleware
-app.use((err: Error | BoxdropError, req: Request, res: Response, next: NextFunction) => {
-  let customError = err;
+app.use(
+  (
+    err: Error | BoxdropError,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    let customError = err;
 
-  if (!(err instanceof BoxdropError)) {
-    customError = new BoxdropError("Internal server error");
+    if (!(err instanceof BoxdropError)) {
+      customError = new BoxdropError("Internal server error");
+    }
+
+    res
+      .status((customError as BoxdropError).statusCode)
+      .json({ error: err.message });
   }
-
-  res
-    .status((customError as BoxdropError).statusCode)
-    .json({ error: err.message });
-});
+);
