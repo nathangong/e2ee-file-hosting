@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState } from "react";
 import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -25,7 +25,7 @@ export default function Signup() {
 
     setLoading(true);
     setError("");
-    user.register(email, password).then(data => {
+    user.register(email, password).then((data) => {
       if (data.error) {
         setError(data.error);
       } else {
@@ -45,7 +45,9 @@ export default function Signup() {
               src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg"
               alt="Workflow"
             />
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign up for BoxDrop</h2>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Sign up for GongDrive
+            </h2>
           </div>
           {error && (
             <div
@@ -127,16 +129,21 @@ export default function Signup() {
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   value={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.value) }
+                  onChange={(e) => setRememberMe(e.target.value)}
                   defaultChecked={true}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-900"
+                >
                   Remember me
                 </label>
-
               </div>
               <div className="text-sm">
-                <a href="/signin" className="font-medium text-indigo-600 hover:text-indigo-500">
+                <a
+                  href="/signin"
+                  className="font-medium text-indigo-600 hover:text-indigo-500"
+                >
                   Already have an account?
                 </a>
               </div>
@@ -157,5 +164,5 @@ export default function Signup() {
         </div>
       </div>
     </>
-  )
+  );
 }

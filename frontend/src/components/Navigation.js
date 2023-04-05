@@ -18,7 +18,7 @@ export default function Navigation(props) {
                   alt="Gong Drive Logo"
                 />
               </div>
-              <div className="ml-4 text-3xl font-bold">BoxDrop</div>
+              <div className="ml-4 text-3xl font-bold">GongDrive</div>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
               {props.authenticated && (
