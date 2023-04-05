@@ -48,7 +48,7 @@ router.post(
     if (provider === "email") {
       user = await User.loginWithEmail(email, password);
     } else {
-      user = null; // TODO
+      user = null; // Google auth integration?
     }
 
     const token = createToken(user.id);

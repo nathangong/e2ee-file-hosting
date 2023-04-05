@@ -149,7 +149,6 @@ export default function Signup() {
               </div>
             </div>
 
-            {/* TODO: validate emails */}
             <div>
               <button
                 type="submit"
