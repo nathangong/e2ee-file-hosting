@@ -125,7 +125,6 @@ export default function Signin() {
               </div>
             </div>
 
-            {/* TODO: validate emails */}
             <div>
               <button
                 type="submit"
