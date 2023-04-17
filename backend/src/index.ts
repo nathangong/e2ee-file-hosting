@@ -24,10 +24,6 @@ app.use(
   })
 );
 
-app.get("/", (req: Request, res: Response) => {
-  return res.send("Hello world!");
-});
-
 app.listen(port, () => {
   console.log(`App is running at port ${port}`);
 });
@@ -35,5 +31,4 @@ app.listen(port, () => {
 app.use("/user", user);
 app.use("/file", file);
 
-// Error handling middleware
 app.use(handleError);
