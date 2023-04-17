@@ -4,7 +4,7 @@ import * as User from "../models/User";
 import { createToken } from "../auth";
 import { asyncHandler } from "../util";
 import { BoxdropError } from "../models/BoxdropError";
-import handleAuth from "../middleware/handleAuth.middleware";
+import handleAuth from "../middleware/handleAuth";
 
 const router = express.Router();
 const providers = ["email", "google"];

@@ -4,8 +4,8 @@ import user from "./routes/user";
 import file from "./routes/file";
 import dotenv from "dotenv";
 import fileUpload from "express-fileupload";
-import { BoxdropError } from "./models/BoxdropError";
 import cors from "cors";
+import handleError from "./middleware/handleError";
 
 dotenv.config();
 
@@ -36,21 +36,4 @@ app.use("/user", user);
 app.use("/file", file);
 
 // Error handling middleware
-app.use(
-  (
-    err: Error | BoxdropError,
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    let customError = err;
-
-    if (!(err instanceof BoxdropError)) {
-      customError = new BoxdropError("Internal server error");
-    }
-
-    res
-      .status((customError as BoxdropError).statusCode)
-      .json({ error: err.message });
-  }
-);
+app.use(handleError);

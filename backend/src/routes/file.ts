@@ -4,7 +4,7 @@ import { asyncHandler } from "../util";
 import * as File from "../models/File";
 import { BoxdropError } from "../models/BoxdropError";
 import { Stream } from "stream";
-import handleAuth from "../middleware/handleAuth.middleware";
+import handleAuth from "../middleware/handleAuth";
 
 const router = express.Router();
 
