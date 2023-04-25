@@ -103,6 +103,14 @@ export default function Home() {
 
   async function handleFileChange(event) {
     const uploadedFile = event.target.files[0];
+    const twoMb = 2e6;
+    if (uploadedFile.size > twoMb) {
+      toast.error("File size cannot be greater than 2 MB", {
+        position: toast.POSITION.BOTTOM_RIGHT,
+        hideProgressBar: true,
+      });
+      return;
+    }
 
     await toast.promise(
       file.upload(uploadedFile),
@@ -213,6 +221,13 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
+                  {entities.length === 0 && (
+                    <tr className="bg-white">
+                      <td colSpan={3} className="px-6 py-5 text-gray-700">
+                        You haven't uploaded any files yet.
+                      </td>
+                    </tr>
+                  )}
                   {entities.map((entity) => (
                     <tr
                       key={entity.id}
