@@ -68,10 +68,11 @@ export async function downloadShared(fileId: string) {
 /**
  * Upload a file to Google Cloud Storage
  * @param id the user's id
- * @param file the file to upload
+ * @param file the encrypted file to upload
+ * @param iv the initialization vector for the file
  * @returns the upload response from Google Cloud Storage
  */
-export async function upload(id: number, file: UploadedFile) {
+export async function upload(id: number, file: UploadedFile, iv: Buffer) {
   const filePath = file.tempFilePath;
   const fileId = uniqid();
   const destFileName = id + "/" + file.name;
@@ -81,6 +82,7 @@ export async function upload(id: number, file: UploadedFile) {
     metadata: {
       metadata: {
         id: fileId,
+        iv: iv.toJSON().data.toString(),
       },
     },
   });

@@ -5,6 +5,7 @@ import { BoxdropError } from "./BoxdropError";
 const datastore = new Datastore({
   projectId: "boxdrop-backend",
 });
+// todo: update docs
 
 /**
  * Query user based on email. Since emails must be unique, the output should always
@@ -36,7 +37,12 @@ export async function get(id: number) {
  * @param password the user's password
  * @returns the save response from datastore
  */
-export async function createWithEmail(email: string, password: string) {
+export async function createWithEmail(
+  email: string,
+  password: string,
+  masterKey: number[],
+  masterKeyIv: Map<string, number>
+) {
   const queryRes = await queryEmail(email);
   if (queryRes.length > 0) {
     throw new BoxdropError(`User with email ${email} already exists`, 400);
@@ -50,6 +56,8 @@ export async function createWithEmail(email: string, password: string) {
       email,
       hash,
       provider: "email",
+      masterKey,
+      masterKeyIv,
     },
   });
   return res;
@@ -93,5 +101,5 @@ export async function loginWithEmail(email: string, password: string) {
   if (!valid) {
     throw new BoxdropError("Invalid password", 400);
   }
-  return user[datastore.KEY];
+  return user;
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
+import { decryptMasterKey } from "../services/encryption";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -9,7 +10,7 @@ export default function Signup() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { setAccessToken } = useAuth();
+  const { setAccessToken, setMasterKey } = useAuth();
   const user = useUserActions();
 
   function handleSubmit(event) {
@@ -25,11 +26,17 @@ export default function Signup() {
 
     setLoading(true);
     setError("");
-    user.register(email, password).then((data) => {
+    user.register(email, password).then(async (data) => {
       if (data.error) {
         setError(data.error);
       } else {
-        setAccessToken(data.access_token);
+        const masterKey = await decryptMasterKey(
+          new Uint8Array(data.masterKey).buffer,
+          password,
+          new Uint8Array(data.masterKeyIv).buffer
+        );
+        setAccessToken(data.accessToken);
+        setMasterKey(masterKey);
       }
       setLoading(false);
     });

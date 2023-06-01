@@ -5,6 +5,7 @@ import * as File from "../models/File";
 import { BoxdropError } from "../models/BoxdropError";
 import { Stream } from "stream";
 import handleAuth from "../middleware/handleAuth";
+import fs from "fs";
 
 const router = express.Router();
 
@@ -54,9 +55,16 @@ router.post(
       throw new BoxdropError("No files were uploaded", 400);
     }
     const file = req.files.file as UploadedFile;
-    await File.upload(id, file);
+    const ivFile = req.files.iv as UploadedFile;
+    const iv = fs.readFileSync(ivFile.tempFilePath);
+    // console.log(file.tempFilePath);
+    // console.log(iv.tempFilePath);
+    // console.log(fs.readFileSync(file.tempFilePath).buffer);
+    // console.log(fs.readFileSync(iv.tempFilePath).buffer);
 
-    return res.send("file recieved!");
+    await File.upload(id, file, iv);
+
+    return res.send("file received!");
   })
 );
 

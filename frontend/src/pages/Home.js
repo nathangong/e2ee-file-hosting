@@ -112,6 +112,8 @@ export default function Home() {
       return;
     }
 
+    event.target.value = "";
+
     await toast.promise(
       file.upload(uploadedFile),
       {
@@ -133,6 +135,10 @@ export default function Home() {
 
   async function handleBlur(name) {
     setFocused(null);
+  }
+
+  if (accessToken === "loading") {
+    return;
   }
 
   return (
