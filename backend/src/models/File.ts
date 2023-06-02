@@ -68,8 +68,8 @@ export async function downloadShared(fileId: string) {
 /**
  * Upload a file to Google Cloud Storage
  * @param id the user's id
- * @param file the encrypted file to upload
- * @param iv the initialization vector for the file
+ * @param file the file to upload
+ * @param iv the initialization vector for the file if encrypted
  * @returns the upload response from Google Cloud Storage
  */
 export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
@@ -102,11 +102,15 @@ export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
  */
 export async function trash(id: number, name: string) {
   const destFileName = id + "/" + name;
-  const fileId = (await getMetadata(id, name)).metadata.id;
+  const { metadata } = await getMetadata(id, name);
+  const fileId = metadata.id;
   const res = await bucket.file(destFileName).delete();
 
-  const destShared = "shared/" + fileId;
-  await bucket.file(destShared).delete();
+  const isPublic = !metadata.iv;
+  if (isPublic) {
+    const destShared = "shared/" + fileId;
+    await bucket.file(destShared).delete();
+  }
 
   return res;
 }
