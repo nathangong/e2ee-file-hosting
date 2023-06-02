@@ -110,20 +110,12 @@ export default function Home() {
     fetchData();
   }
 
-  async function handleFocus(name) {
-    setFocused(name);
-  }
-
-  async function handleBlur() {
-    setFocused(null);
-  }
-
   function copyShareLink(event) {
     event.preventDefault();
 
-    const filtered = entities.filter((entity) => entity.name === focused);
-    const fileId = filtered[0].metadata.id;
-    navigator.clipboard.writeText(window.location.href + "files/" + fileId);
+    const baseUrl = window.location.href;
+    const id = focused.metadata.id;
+    navigator.clipboard.writeText(baseUrl + "files/" + id);
 
     toast.success("File URL copied to clipboard!", {
       position: toast.POSITION.BOTTOM_RIGHT,
@@ -191,7 +183,7 @@ export default function Home() {
             <div className="mt-0.5 font-bold">Delete</div>
           </button>
         )}
-        {focused && (
+        {focused && !focused.metadata.iv && (
           <button
             className="group relative flex align-middle justify-center mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             onClick={copyShareLink}
@@ -241,8 +233,8 @@ export default function Home() {
                     <tr
                       key={entity.id}
                       tabIndex={0}
-                      onFocus={() => handleFocus(entity.name)}
-                      onBlur={() => handleBlur()}
+                      onFocus={() => setFocused(entity)}
+                      onBlur={() => setFocused(null)}
                       className="hover:bg-gray-100 bg-white focus:outline-none focus:bg-indigo-100 cursor-pointer"
                     >
                       <td className="px-6 py-5 whitespace-nowrap">
