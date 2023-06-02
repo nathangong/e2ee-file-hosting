@@ -40,7 +40,6 @@ export default function Home() {
   }, [accessToken]);
 
   async function fetchData() {
-    // fetch entities
     const files = await file.getAllMetadata();
     files.map((entity) => {
       entity.name = entity.name.split("/").slice(1).join("/");
@@ -48,13 +47,8 @@ export default function Home() {
     });
     setEntities(files);
 
-    // fetch email
     const userData = await user.getData();
-    if (!userData.error) {
-      setEmail(userData.email);
-    } else {
-      console.log(userData.error);
-    }
+    setEmail(userData.email);
 
     setLoading(false);
   }
