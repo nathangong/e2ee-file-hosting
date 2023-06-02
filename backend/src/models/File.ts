@@ -72,7 +72,7 @@ export async function downloadShared(fileId: string) {
  * @param iv the initialization vector for the file
  * @returns the upload response from Google Cloud Storage
  */
-export async function upload(id: number, file: UploadedFile, iv: Buffer) {
+export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
   const filePath = file.tempFilePath;
   const fileId = uniqid();
   const destFileName = id + "/" + file.name;
@@ -82,10 +82,14 @@ export async function upload(id: number, file: UploadedFile, iv: Buffer) {
     metadata: {
       metadata: {
         id: fileId,
-        iv: iv.toJSON().data.toString(),
+        iv: iv?.toJSON().data.toString(),
       },
     },
   });
+
+  if (!iv) {
+    await share(id, file.name);
+  }
   return res;
 }
 

@@ -17,8 +17,11 @@ export async function encryptMasterKey(masterKey, password) {
   const rawMasterKey = await window.crypto.subtle.exportKey("raw", masterKey);
 
   const passwordKey = await deriveKeyFromPassword(password);
-  const { contents, iv } = await encryptSymmetric(rawMasterKey, passwordKey);
-  return { encryptedMasterKey: contents, iv };
+  const { encryptedContents, iv } = await encryptSymmetric(
+    rawMasterKey,
+    passwordKey
+  );
+  return { encryptedMasterKey: encryptedContents, iv };
 }
 
 export async function decryptMasterKey(
@@ -102,8 +105,8 @@ export async function encryptSymmetric(data, key) {
   );
 
   return {
-    contents: encryptedContents,
-    iv: iv,
+    encryptedContents,
+    iv,
   };
 }
 

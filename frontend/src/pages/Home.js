@@ -7,19 +7,26 @@ import formatDate from "../util/formatDate";
 import {
   ArrowDownTrayIcon,
   ArrowUpOnSquareIcon,
+  GlobeAltIcon,
   ShareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useFileActions } from "../actions/file";
 import { useUserActions } from "../actions/user";
+import { Tooltip } from "react-tooltip";
+import UploadDialog from "../components/UploadDialog";
 
 export default function Home() {
   const [entities, setEntities] = useState([]);
   const [email, setEmail] = useState();
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState();
+  const [privateFile, setPrivateFile] = useState(true);
   const { accessToken } = useAuth();
   const hiddenFileInput = useRef(null);
   const file = useFileActions();
@@ -52,12 +59,12 @@ export default function Home() {
     setLoading(false);
   }
 
-  async function downloadFile() {
+  async function handleDownload() {
     const blob = await file.get(focused);
     download(blob, focused);
   }
 
-  async function deleteFile(event) {
+  async function handleDelete(event) {
     event.preventDefault();
 
     await toast.promise(
@@ -76,31 +83,6 @@ export default function Home() {
     fetchData();
   }
 
-  async function shareFile(event) {
-    event.preventDefault();
-
-    await toast.promise(
-      file.share(focused),
-      {
-        pending: "Sharing file...",
-        success: "File URL copied to clipboard!",
-        error: "Sorry, we ran into an error",
-      },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
-    );
-
-    const filtered = entities.filter((entity) => entity.name === focused);
-    const fileId = filtered[0].metadata.id;
-    navigator.clipboard.writeText(window.location.href + "files/" + fileId);
-  }
-
-  function handleUpload(event) {
-    hiddenFileInput.current.click();
-  }
-
   async function handleFileChange(event) {
     const uploadedFile = event.target.files[0];
     const twoMb = 2e6;
@@ -111,11 +93,16 @@ export default function Home() {
       });
       return;
     }
-
+    setUploadedFile(event.target.files[0]);
+    setPrivateFile(true);
+    setDialogOpen(true);
     event.target.value = "";
+  }
 
+  async function handleUpload() {
+    setDialogOpen(false);
     await toast.promise(
-      file.upload(uploadedFile),
+      file.upload(uploadedFile, privateFile),
       {
         pending: "Uploading file...",
         success: "File uploaded successfully!",
@@ -133,8 +120,21 @@ export default function Home() {
     setFocused(name);
   }
 
-  async function handleBlur(name) {
+  async function handleBlur() {
     setFocused(null);
+  }
+
+  function copyShareLink(event) {
+    event.preventDefault();
+
+    const filtered = entities.filter((entity) => entity.name === focused);
+    const fileId = filtered[0].metadata.id;
+    navigator.clipboard.writeText(window.location.href + "files/" + fileId);
+
+    toast.success("File URL copied to clipboard!", {
+      position: toast.POSITION.BOTTOM_RIGHT,
+      hideProgressBar: true,
+    });
   }
 
   if (accessToken === "loading") {
@@ -143,7 +143,16 @@ export default function Home() {
 
   return (
     <Page name="Files" loading={loading} authenticated={true}>
+      <UploadDialog
+        fileName={uploadedFile?.name}
+        show={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        isPrivate={privateFile}
+        onPrivateChange={(isPrivate) => setPrivateFile(isPrivate)}
+        onUpload={handleUpload}
+      />
       <ToastContainer bodyClassName="toast" />
+
       <div className="mb-4 text-lg">
         Signed in as <span className="text-indigo-500">{email}</span>
       </div>
@@ -157,7 +166,7 @@ export default function Home() {
         />
         <button
           className="group relative flex align-middle inline-block justify-center mb-4 mr-2 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          onClick={handleUpload}
+          onClick={() => hiddenFileInput.current.click()}
         >
           <ArrowUpOnSquareIcon
             className="block h-6 w-6 mr-2"
@@ -168,7 +177,7 @@ export default function Home() {
         {focused && (
           <button
             className="group relative flex align-middle inline-block mr-2 justify-center mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={downloadFile}
+            onClick={handleDownload}
             onMouseDown={(event) => event.preventDefault()}
           >
             <ArrowDownTrayIcon
@@ -181,7 +190,7 @@ export default function Home() {
         {focused && (
           <button
             className="group relative flex align-middle justify-center mr-2 mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={deleteFile}
+            onClick={handleDelete}
             onMouseDown={(event) => event.preventDefault()}
           >
             <TrashIcon className="block h-6 w-6 mr-2" aria-hidden="true" />
@@ -191,11 +200,11 @@ export default function Home() {
         {focused && (
           <button
             className="group relative flex align-middle justify-center mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={shareFile}
+            onClick={copyShareLink}
             onMouseDown={(event) => event.preventDefault()}
           >
             <ShareIcon className="block h-6 w-6 mr-2" aria-hidden="true" />
-            <div className="mt-0.5 font-bold">Share</div>
+            <div className="mt-0.5 font-bold">Copy Link</div>
           </button>
         )}
       </div>
@@ -239,7 +248,7 @@ export default function Home() {
                       key={entity.id}
                       tabIndex={0}
                       onFocus={() => handleFocus(entity.name)}
-                      onBlur={() => handleBlur(entity.name)}
+                      onBlur={() => handleBlur()}
                       className="hover:bg-gray-100 bg-white focus:outline-none focus:bg-indigo-100 cursor-pointer"
                     >
                       <td className="px-6 py-5 whitespace-nowrap">
@@ -249,6 +258,18 @@ export default function Home() {
                               {entity.name}
                             </div>
                           </div>
+                          {entity.metadata.iv ? (
+                            <LockClosedIcon
+                              className="visibility-icon h-4 ml-3 text-gray-400 outline-none"
+                              data-tooltip-content="Encrypted File"
+                            />
+                          ) : (
+                            <GlobeAltIcon
+                              className="visibility-icon h-4 ml-3 text-gray-400 outline-none"
+                              data-tooltip-content="Public File"
+                            />
+                          )}
+                          <Tooltip anchorSelect=".visibility-icon" />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

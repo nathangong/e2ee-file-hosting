@@ -1,7 +1,6 @@
 import { BACKEND_URL } from "../constants";
 import { useAuth } from "../contexts/AuthContext";
 import { decryptSymmetric, encryptSymmetric } from "../services/encryption";
-import { Buffer } from "buffer";
 
 const url = BACKEND_URL + "/file/";
 
@@ -30,17 +29,26 @@ function useFileActions() {
 
   async function get(name) {
     const { metadata } = await getMetadata(name);
-    const ivArray = metadata.iv.split(",").map(Number);
-    const iv = Uint8Array.from(ivArray);
-
     const response = await fetch(
       url + name + "/content",
       requestOptions("GET")
     );
-    const contents = await response.arrayBuffer();
 
-    const decryptedFile = await decryptSymmetric(contents, masterKey, iv);
-    return new Blob([decryptedFile]);
+    const isPrivate = Boolean(metadata.iv);
+    if (isPrivate) {
+      const ivArray = metadata.iv.split(",").map(Number);
+      const iv = Uint8Array.from(ivArray);
+
+      const encryptedContents = await response.arrayBuffer();
+      const decryptedFile = await decryptSymmetric(
+        encryptedContents,
+        masterKey,
+        iv
+      );
+      return new Blob([decryptedFile]);
+    } else {
+      return await response.blob();
+    }
   }
 
   async function getMetadata(name) {
@@ -74,16 +82,24 @@ function useFileActions() {
     return await fetch(url + "share/" + name, requestOptions("POST"));
   }
 
-  async function upload(file) {
-    const fileBuffer = await file.arrayBuffer();
-    const { contents, iv } = await encryptSymmetric(fileBuffer, masterKey);
+  async function upload(file, isPrivate) {
+    const formData = new FormData();
 
-    const fileBlob = new Blob([contents]);
-    const ivBlob = new Blob([iv]);
-    const data = new FormData();
-    data.append("file", fileBlob, file.name);
-    data.append("iv", ivBlob);
-    return await fetch(url + "upload", requestOptions("POST", data));
+    if (isPrivate) {
+      const fileBuffer = await file.arrayBuffer();
+      const { encryptedContents, iv } = await encryptSymmetric(
+        fileBuffer,
+        masterKey
+      );
+
+      const fileBlob = new Blob([encryptedContents]);
+      const ivBlob = new Blob([iv]);
+      formData.append("file", fileBlob, file.name);
+      formData.append("iv", ivBlob);
+    } else {
+      formData.append("file", file);
+    }
+    return await fetch(url + "upload", requestOptions("POST", formData));
   }
 }
 
