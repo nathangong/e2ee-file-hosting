@@ -54,15 +54,15 @@ export default function Home() {
   }
 
   async function handleDownload() {
-    const blob = await file.get(focused);
-    download(blob, focused);
+    const blob = await file.get(focused.name);
+    download(blob, focused.name);
   }
 
   async function handleDelete(event) {
     event.preventDefault();
 
     await toast.promise(
-      file.remove(focused),
+      file.remove(focused.name),
       {
         pending: "Deleting file...",
         success: "File deleted successfully!",
