@@ -78,11 +78,6 @@ export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
   const fileId = uniqid();
   const destFileName = id + "/" + file.name;
 
-  const alreadyExists = await bucket.file(destFileName).exists();
-  if (alreadyExists) {
-    throw new BoxdropError(`Duplicate file ${file.name} already exists.`, 500);
-  }
-
   const res = await bucket.upload(filePath, {
     destination: destFileName,
     metadata: {
