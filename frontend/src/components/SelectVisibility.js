@@ -16,6 +16,7 @@ export default function SelectVisibility({ visibility, setVisibility }) {
             <button
               className="flex items-center rounded-md py-[0.4375rem] pl-2 pr-2 text-sm font-semibold lg:pr-3 bg-white shadow"
               onClick={() => setVisibility(option)}
+              key={option}
             >
               <Icon className="h-5 w-5 flex-none stroke-indigo-500" />
               <span className="ml-2 text-gray-900">{option}</span>
@@ -24,6 +25,7 @@ export default function SelectVisibility({ visibility, setVisibility }) {
             <button
               className="flex items-center rounded-md py-[0.4375rem] pl-2 pr-2 text-sm font-semibold lg:pr-3"
               onClick={() => setVisibility(option)}
+              key={option}
             >
               <Icon className="h-5 w-5 flex-none stroke-gray-600" />
               <span className="ml-2 text-gray-600">{option}</span>
