@@ -5,7 +5,6 @@ import { BoxdropError } from "./BoxdropError";
 const datastore = new Datastore({
   projectId: "boxdrop-backend",
 });
-// todo: update docs
 
 /**
  * Query user based on email. Since emails must be unique, the output should always
@@ -31,10 +30,12 @@ export async function get(id: number) {
 }
 
 /**
- * Create a user using email and password authentication. Passwords are encrypted before
+ * Create a user using email and password authentication. Passwords are hashed before
  * they are stored in the database.
  * @param email the user's email
  * @param password the user's password
+ * @param masterKey the user's encrypted master key for files
+ * @param masterKeyIv initialization vector for masterKey
  * @returns the save response from datastore
  */
 export async function createWithEmail(

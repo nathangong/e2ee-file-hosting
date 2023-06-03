@@ -1,7 +1,6 @@
 import { Storage } from "@google-cloud/storage";
 import { UploadedFile } from "express-fileupload";
 import uniqid from "uniqid";
-import { BoxdropError } from "./BoxdropError";
 
 const storage = new Storage();
 const bucketName = "boxdrop-backend.appspot.com";
@@ -95,7 +94,7 @@ export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
 }
 
 /**
- * Delete a file from Google Cloud Storage. If the file was shared,
+ * Delete a file from Google Cloud Storage. If the file is public,
  * it will also be deleted from the shared folder.
  * @param id the user's id
  * @param name the file name
