@@ -1,6 +1,7 @@
 import { Storage } from "@google-cloud/storage";
 import { UploadedFile } from "express-fileupload";
 import uniqid from "uniqid";
+import { BoxdropError } from "./BoxdropError";
 
 const storage = new Storage();
 const bucketName = "boxdrop-backend.appspot.com";
@@ -41,12 +42,12 @@ export async function getMetadataFromPath(path: string) {
 }
 
 /**
- * Download a specified file as a buffer
+ * Get a specified file as a buffer
  * @param id the user's id
  * @param name the file name
  * @returns the file buffer
  */
-export async function download(id: number, name: string) {
+export async function get(id: number, name: string) {
   const path = id + "/" + name;
   const [buffer] = await bucket.file(path).download();
 
@@ -54,11 +55,11 @@ export async function download(id: number, name: string) {
 }
 
 /**
- * Download a specified shared file as a buffer
+ * Get a specified shared file as a buffer
  * @param fileId the shared file's id
  * @returns the file buffer
  */
-export async function downloadShared(fileId: string) {
+export async function getShared(fileId: string) {
   const path = "shared/" + fileId;
   const [buffer] = await bucket.file(path).download();
 
@@ -76,6 +77,11 @@ export async function upload(id: number, file: UploadedFile, iv?: Buffer) {
   const filePath = file.tempFilePath;
   const fileId = uniqid();
   const destFileName = id + "/" + file.name;
+
+  const alreadyExists = await bucket.file(destFileName).exists();
+  if (alreadyExists) {
+    throw new BoxdropError(`Duplicate file ${file.name} already exists.`, 500);
+  }
 
   const res = await bucket.upload(filePath, {
     destination: destFileName,

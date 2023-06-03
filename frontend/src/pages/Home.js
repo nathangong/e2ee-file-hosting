@@ -19,6 +19,11 @@ import { useUserActions } from "../actions/user";
 import { Tooltip } from "react-tooltip";
 import UploadDialog from "../components/UploadDialog";
 
+const TOAST_OPTIONS = {
+  position: toast.POSITION.BOTTOM_RIGHT,
+  hideProgressBar: true,
+};
+
 export default function Home() {
   const [entities, setEntities] = useState([]);
   const [email, setEmail] = useState();
@@ -26,7 +31,7 @@ export default function Home() {
   const [focused, setFocused] = useState();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState();
-  const [privateFile, setPrivateFile] = useState(true);
+  const [isPrivate, setPrivate] = useState(true);
   const { accessToken } = useAuth();
   const hiddenFileInput = useRef(null);
   const file = useFileActions();
@@ -68,10 +73,7 @@ export default function Home() {
         success: "File deleted successfully!",
         error: "Sorry, we ran into an error",
       },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
+      TOAST_OPTIONS
     );
     setFocused(null);
     fetchData();
@@ -81,31 +83,33 @@ export default function Home() {
     const uploadedFile = event.target.files[0];
     const twoMb = 2e6;
     if (uploadedFile.size > twoMb) {
-      toast.error("File size cannot be greater than 2 MB", {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      });
+      toast.error("File size cannot be greater than 2 MB", TOAST_OPTIONS);
       return;
     }
     setUploadedFile(event.target.files[0]);
-    setPrivateFile(true);
+    setPrivate(true);
     setDialogOpen(true);
     event.target.value = "";
   }
 
   async function handleUpload() {
     setDialogOpen(false);
+
+    if (entities.some((entity) => entity.name === uploadedFile.name)) {
+      return toast.error(
+        `Duplicate file name "${uploadedFile.name}" already exists.`,
+        TOAST_OPTIONS
+      );
+    }
+
     await toast.promise(
-      file.upload(uploadedFile, privateFile),
+      file.upload(uploadedFile, isPrivate),
       {
         pending: "Uploading file...",
         success: "File uploaded successfully!",
         error: "Sorry, we ran into an error",
       },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
+      TOAST_OPTIONS
     );
     fetchData();
   }
@@ -117,10 +121,7 @@ export default function Home() {
     const id = focused.metadata.id;
     navigator.clipboard.writeText(baseUrl + "files/" + id);
 
-    toast.success("File URL copied to clipboard!", {
-      position: toast.POSITION.BOTTOM_RIGHT,
-      hideProgressBar: true,
-    });
+    toast.success("File URL copied to clipboard!", TOAST_OPTIONS);
   }
 
   if (accessToken === "loading") {
@@ -133,8 +134,8 @@ export default function Home() {
         fileName={uploadedFile?.name}
         show={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        isPrivate={privateFile}
-        onPrivateChange={(isPrivate) => setPrivateFile(isPrivate)}
+        isPrivate={isPrivate}
+        onPrivateChange={(isPrivate) => setPrivate(isPrivate)}
         onUpload={handleUpload}
       />
       <ToastContainer bodyClassName="toast" />

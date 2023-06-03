@@ -24,7 +24,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const id = req.params.id;
     const path = "shared/" + id;
-    const buffer = await File.downloadShared(id);
+    const buffer = await File.getShared(id);
     const metadata = await File.getMetadataFromPath(path);
     const name = metadata.metadata.name;
 
@@ -83,7 +83,7 @@ router.get(
     const id = res.locals.id;
 
     const name = req.params.name;
-    const buffer = await File.download(id, name);
+    const buffer = await File.get(id, name);
     const metadata = await File.getMetadata(id, name);
 
     const readStream = new Stream.PassThrough();
