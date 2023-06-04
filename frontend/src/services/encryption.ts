@@ -1,8 +1,10 @@
 import { SALT } from "../constants";
 import { Buffer } from "buffer";
 
+const crypto = window.crypto.subtle;
+
 export async function generateMasterKey() {
-  const key = await window.crypto.subtle.generateKey(
+  const key = await crypto.generateKey(
     {
       name: "AES-CBC",
       length: 256,
@@ -14,7 +16,7 @@ export async function generateMasterKey() {
 }
 
 export async function encryptMasterKey(masterKey: CryptoKey, password: string) {
-  const rawMasterKey = await window.crypto.subtle.exportKey("raw", masterKey);
+  const rawMasterKey = await crypto.exportKey("raw", masterKey);
 
   const passwordKey = await deriveKeyFromPassword(password);
   const { encryptedContents, iv } = await encryptSymmetric(
@@ -35,7 +37,7 @@ export async function decryptMasterKey(
     passwordKey,
     initializationVector
   );
-  const masterKey = window.crypto.subtle.importKey(
+  const masterKey = crypto.importKey(
     "raw",
     rawMasterKey,
     { name: "AES-CBC" },
@@ -46,13 +48,13 @@ export async function decryptMasterKey(
 }
 
 export async function exportKey(key: CryptoKey) {
-  const exportedKey = await window.crypto.subtle.exportKey("jwk", key);
+  const exportedKey = await crypto.exportKey("jwk", key);
   return JSON.stringify(exportedKey);
 }
 
 export async function importKey(key: string) {
   const parsedKey = await JSON.parse(key);
-  const importedKey = await crypto.subtle.importKey(
+  const importedKey = await crypto.importKey(
     "jwk",
     parsedKey,
     { name: "AES-CBC" },
@@ -65,7 +67,7 @@ export async function importKey(key: string) {
 async function deriveKeyFromPassword(password: string) {
   const encoder = new TextEncoder();
 
-  const importedKey = await window.crypto.subtle.importKey(
+  const importedKey = await crypto.importKey(
     "raw",
     encoder.encode(password),
     { name: "PBKDF2" },
@@ -73,7 +75,7 @@ async function deriveKeyFromPassword(password: string) {
     ["deriveKey"]
   );
 
-  const key = await window.crypto.subtle.deriveKey(
+  const key = await crypto.deriveKey(
     {
       name: "PBKDF2",
       salt: encoder.encode(SALT),
@@ -112,10 +114,6 @@ export async function decryptSymmetric(
   initializationVector: ArrayBufferLike
 ) {
   const algorithm = { name: "AES-CBC", iv: initializationVector };
-  const decryptedData = await crypto.subtle.decrypt(
-    algorithm,
-    key,
-    encryptedData
-  );
+  const decryptedData = await crypto.decrypt(algorithm, key, encryptedData);
   return decryptedData;
 }
