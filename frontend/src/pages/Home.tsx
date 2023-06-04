@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, FormEvent, ChangeEvent } from "react";
+import { useEffect, useState, useRef, ChangeEvent } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import formatBytes from "../util/formatBytes";
 import download from "downloadjs";
