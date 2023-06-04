@@ -1,5 +1,4 @@
-import express, { NextFunction } from "express";
-import { Request, Response } from "express";
+import express from "express";
 import user from "./routes/user";
 import file from "./routes/file";
 import dotenv from "dotenv";
