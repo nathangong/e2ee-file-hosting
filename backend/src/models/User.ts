@@ -30,13 +30,20 @@ export async function get(id: number) {
 }
 
 /**
- * Create a user using email and password authentication. Passwords are encrypted before
+ * Create a user using email and password authentication. Passwords are hashed before
  * they are stored in the database.
  * @param email the user's email
  * @param password the user's password
+ * @param masterKey the user's encrypted master key for files
+ * @param masterKeyIv initialization vector for masterKey
  * @returns the save response from datastore
  */
-export async function createWithEmail(email: string, password: string) {
+export async function createWithEmail(
+  email: string,
+  password: string,
+  masterKey: number[],
+  masterKeyIv: Map<string, number>
+) {
   const queryRes = await queryEmail(email);
   if (queryRes.length > 0) {
     throw new BoxdropError(`User with email ${email} already exists`, 400);
@@ -50,6 +57,8 @@ export async function createWithEmail(email: string, password: string) {
       email,
       hash,
       provider: "email",
+      masterKey,
+      masterKeyIv,
     },
   });
   return res;
@@ -93,5 +102,5 @@ export async function loginWithEmail(email: string, password: string) {
   if (!valid) {
     throw new BoxdropError("Invalid password", 400);
   }
-  return user[datastore.KEY];
+  return user;
 }

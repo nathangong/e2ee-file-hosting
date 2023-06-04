@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, FormEvent, ChangeEvent } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import formatBytes from "../util/formatBytes";
 import download from "downloadjs";
@@ -7,21 +7,43 @@ import formatDate from "../util/formatDate";
 import {
   ArrowDownTrayIcon,
   ArrowUpOnSquareIcon,
+  GlobeAltIcon,
   ShareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useFileActions } from "../actions/file";
 import { useUserActions } from "../actions/user";
+import { Tooltip } from "react-tooltip";
+import UploadDialog from "../components/UploadDialog";
+
+interface Entity {
+  name: string;
+  updated: string;
+  size: number;
+  metadata: {
+    iv: string;
+    id: string;
+  };
+}
+
+const TOAST_OPTIONS = {
+  position: toast.POSITION.BOTTOM_RIGHT,
+  hideProgressBar: true,
+};
 
 export default function Home() {
-  const [entities, setEntities] = useState([]);
-  const [email, setEmail] = useState();
+  const [entities, setEntities] = useState<Entity[]>([]);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focused, setFocused] = useState();
+  const [focused, setFocused] = useState<Entity | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isPrivate, setPrivate] = useState(true);
   const { accessToken } = useAuth();
-  const hiddenFileInput = useRef(null);
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const file = useFileActions();
   const user = useUserActions();
 
@@ -30,114 +52,111 @@ export default function Home() {
 
     setLoading(true);
     fetchData();
+    // eslint-disable-next-line
   }, [accessToken]);
 
   async function fetchData() {
-    // fetch entities
     const files = await file.getAllMetadata();
-    files.map((entity) => {
+    files.map((entity: any) => {
       entity.name = entity.name.split("/").slice(1).join("/");
       return entity;
     });
     setEntities(files);
 
-    // fetch email
     const userData = await user.getData();
-    if (!userData.error) {
-      setEmail(userData.email);
-    } else {
-      console.log(userData.error);
-    }
+    setEmail(userData.email);
 
     setLoading(false);
   }
 
-  async function downloadFile() {
-    const blob = await file.get(focused);
-    download(blob, focused);
+  async function handleDownload() {
+    if (!focused) return;
+
+    const blob = await file.get(focused.name);
+    download(blob, focused.name);
   }
 
-  async function deleteFile(event) {
-    event.preventDefault();
+  async function handleDelete() {
+    if (!focused) return;
 
     await toast.promise(
-      file.remove(focused),
+      file.remove(focused.name),
       {
         pending: "Deleting file...",
         success: "File deleted successfully!",
         error: "Sorry, we ran into an error",
       },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
+      TOAST_OPTIONS
     );
     setFocused(null);
     fetchData();
   }
 
-  async function shareFile(event) {
-    event.preventDefault();
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files || !files.length) return;
 
-    await toast.promise(
-      file.share(focused),
-      {
-        pending: "Sharing file...",
-        success: "File URL copied to clipboard!",
-        error: "Sorry, we ran into an error",
-      },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
-    );
-
-    const filtered = entities.filter((entity) => entity.name === focused);
-    const fileId = filtered[0].metadata.id;
-    navigator.clipboard.writeText(window.location.href + "files/" + fileId);
-  }
-
-  function handleUpload(event) {
-    hiddenFileInput.current.click();
-  }
-
-  async function handleFileChange(event) {
-    const uploadedFile = event.target.files[0];
+    const file = files[0];
     const twoMb = 2e6;
-    if (uploadedFile.size > twoMb) {
-      toast.error("File size cannot be greater than 2 MB", {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      });
+    if (file.size > twoMb) {
+      toast.error("File size cannot be greater than 2 MB", TOAST_OPTIONS);
       return;
+    }
+    setUploadedFile(file);
+    setPrivate(true);
+    setDialogOpen(true);
+    event.target.value = "";
+  }
+
+  async function handleUpload() {
+    setDialogOpen(false);
+    if (!uploadedFile) return;
+
+    if (entities.some((entity) => entity.name === uploadedFile.name)) {
+      return toast.error(
+        `Duplicate file name "${uploadedFile.name}" already exists.`,
+        TOAST_OPTIONS
+      );
     }
 
     await toast.promise(
-      file.upload(uploadedFile),
+      file.upload(uploadedFile, isPrivate),
       {
         pending: "Uploading file...",
         success: "File uploaded successfully!",
         error: "Sorry, we ran into an error",
       },
-      {
-        position: toast.POSITION.BOTTOM_RIGHT,
-        hideProgressBar: true,
-      }
+      TOAST_OPTIONS
     );
     fetchData();
   }
 
-  async function handleFocus(name) {
-    setFocused(name);
+  function copyShareLink() {
+    if (!focused) return;
+
+    const baseUrl = window.location.href;
+    const id = focused.metadata.id;
+    navigator.clipboard.writeText(baseUrl + "files/" + id);
+
+    toast.success("File URL copied to clipboard!", TOAST_OPTIONS);
   }
 
-  async function handleBlur(name) {
-    setFocused(null);
+  if (accessToken === "loading") {
+    return <></>;
   }
 
   return (
     <Page name="Files" loading={loading} authenticated={true}>
+      <UploadDialog
+        fileName={uploadedFile?.name}
+        show={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        isPrivate={isPrivate}
+        onPrivateChange={(isPrivate) => setPrivate(isPrivate)}
+        onUpload={handleUpload}
+      />
       <ToastContainer bodyClassName="toast" />
+
       <div className="mb-4 text-lg">
         Signed in as <span className="text-indigo-500">{email}</span>
       </div>
@@ -151,7 +170,7 @@ export default function Home() {
         />
         <button
           className="group relative flex align-middle inline-block justify-center mb-4 mr-2 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          onClick={handleUpload}
+          onClick={() => hiddenFileInput.current?.click()}
         >
           <ArrowUpOnSquareIcon
             className="block h-6 w-6 mr-2"
@@ -162,7 +181,7 @@ export default function Home() {
         {focused && (
           <button
             className="group relative flex align-middle inline-block mr-2 justify-center mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={downloadFile}
+            onClick={handleDownload}
             onMouseDown={(event) => event.preventDefault()}
           >
             <ArrowDownTrayIcon
@@ -175,21 +194,21 @@ export default function Home() {
         {focused && (
           <button
             className="group relative flex align-middle justify-center mr-2 mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={deleteFile}
+            onClick={handleDelete}
             onMouseDown={(event) => event.preventDefault()}
           >
             <TrashIcon className="block h-6 w-6 mr-2" aria-hidden="true" />
             <div className="mt-0.5 font-bold">Delete</div>
           </button>
         )}
-        {focused && (
+        {focused && !focused.metadata.iv && (
           <button
             className="group relative flex align-middle justify-center mb-4 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            onClick={shareFile}
+            onClick={copyShareLink}
             onMouseDown={(event) => event.preventDefault()}
           >
             <ShareIcon className="block h-6 w-6 mr-2" aria-hidden="true" />
-            <div className="mt-0.5 font-bold">Share</div>
+            <div className="mt-0.5 font-bold">Copy Link</div>
           </button>
         )}
       </div>
@@ -230,10 +249,10 @@ export default function Home() {
                   )}
                   {entities.map((entity) => (
                     <tr
-                      key={entity.id}
+                      key={entity.metadata.id}
                       tabIndex={0}
-                      onFocus={() => handleFocus(entity.name)}
-                      onBlur={() => handleBlur(entity.name)}
+                      onFocus={() => setFocused(entity)}
+                      onBlur={() => setFocused(null)}
                       className="hover:bg-gray-100 bg-white focus:outline-none focus:bg-indigo-100 cursor-pointer"
                     >
                       <td className="px-6 py-5 whitespace-nowrap">
@@ -243,6 +262,18 @@ export default function Home() {
                               {entity.name}
                             </div>
                           </div>
+                          {entity.metadata.iv ? (
+                            <LockClosedIcon
+                              className="visibility-icon h-4 ml-3 text-gray-400 outline-none"
+                              data-tooltip-content="Encrypted File"
+                            />
+                          ) : (
+                            <GlobeAltIcon
+                              className="visibility-icon h-4 ml-3 text-gray-400 outline-none"
+                              data-tooltip-content="Public File"
+                            />
+                          )}
+                          <Tooltip anchorSelect=".visibility-icon" />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

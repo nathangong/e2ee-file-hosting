@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
+import { decryptMasterKey } from "../services/encryption";
 
 export default function Signin() {
   const [email, setEmail] = useState("");
@@ -8,19 +9,26 @@ export default function Signin() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { setAccessToken } = useAuth();
+  const { setAccessToken, setMasterKey } = useAuth();
   const user = useUserActions();
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setLoading(true);
     setError("");
-    user.login(email, password).then((data) => {
+    user.login(email, password).then(async (data) => {
       if (data.error) {
         setError(data.error);
       } else {
-        setAccessToken(data.access_token);
+        const masterKey = await decryptMasterKey(
+          new Uint8Array(data.masterKey).buffer,
+          password,
+          new Uint8Array(data.masterKeyIv).buffer
+        );
+
+        setAccessToken(data.accessToken);
+        setMasterKey(masterKey);
       }
       setLoading(false);
     });
@@ -42,13 +50,13 @@ export default function Signin() {
           </div>
           {error && (
             <div
-              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
               role="alert"
             >
-              <span class="block sm:inline">{error}</span>
-              <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+              <span className="block sm:inline">{error}</span>
+              <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
                 <svg
-                  class="fill-current h-6 w-6 text-red-500"
+                  className="fill-current h-6 w-6 text-red-500"
                   role="button"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
@@ -103,8 +111,8 @@ export default function Signin() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  value={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.value)}
+                  value={rememberMe.toString()}
+                  onChange={(e) => setRememberMe(Boolean(e.target.value))}
                   defaultChecked={true}
                 />
                 <label

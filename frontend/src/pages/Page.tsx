@@ -1,19 +1,30 @@
-import React from "react";
 import Navigation from "../components/Navigation";
 import { CircularProgress } from "@material-ui/core";
 
-export default function Page(props) {
+interface PageProps {
+  authenticated: boolean;
+  children: React.ReactNode;
+  loading: boolean;
+  name: string;
+}
+
+export default function Page({
+  authenticated,
+  children,
+  loading,
+  name,
+}: PageProps) {
   return (
     <div className="bg-gray-100 min-h-screen">
-      <Navigation authenticated={props.authenticated} />
+      <Navigation authenticated={authenticated} />
       <header>
         <div className="max-w-7xl mx-auto pt-6 pb-3 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">{props.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
         </div>
       </header>
       <main>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-          {props.loading ? <CircularProgress /> : props.children}
+          {loading ? <CircularProgress /> : children}
         </div>
       </main>
     </div>

@@ -5,6 +5,7 @@ import * as File from "../models/File";
 import { BoxdropError } from "../models/BoxdropError";
 import { Stream } from "stream";
 import handleAuth from "../middleware/handleAuth";
+import fs from "fs";
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const id = req.params.id;
     const path = "shared/" + id;
-    const buffer = await File.downloadShared(id);
+    const buffer = await File.getShared(id);
     const metadata = await File.getMetadataFromPath(path);
     const name = metadata.metadata.name;
 
@@ -54,9 +55,15 @@ router.post(
       throw new BoxdropError("No files were uploaded", 400);
     }
     const file = req.files.file as UploadedFile;
-    await File.upload(id, file);
+    let iv;
+    if (req.files.iv) {
+      const ivFile = req.files.iv as UploadedFile;
+      iv = fs.readFileSync(ivFile.tempFilePath);
+    }
 
-    return res.send("file recieved!");
+    await File.upload(id, file, iv);
+
+    return res.send("file received!");
   })
 );
 
@@ -76,7 +83,7 @@ router.get(
     const id = res.locals.id;
 
     const name = req.params.name;
-    const buffer = await File.download(id, name);
+    const buffer = await File.get(id, name);
     const metadata = await File.getMetadata(id, name);
 
     const readStream = new Stream.PassThrough();
@@ -95,17 +102,6 @@ router.delete(
 
     await File.trash(id, name);
     return res.send("file deleted!");
-  })
-);
-
-router.post(
-  "/share/:name",
-  asyncHandler(async (req, res) => {
-    const id = res.locals.id;
-    const name = req.params.name;
-
-    await File.share(id, name);
-    return res.send("file shared!");
   })
 );
 

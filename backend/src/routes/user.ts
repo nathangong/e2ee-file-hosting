@@ -5,6 +5,7 @@ import { createToken } from "../auth";
 import { asyncHandler } from "../util";
 import { BoxdropError } from "../models/BoxdropError";
 import handleAuth from "../middleware/handleAuth";
+import { Datastore } from "@google-cloud/datastore";
 
 const router = express.Router();
 const providers = ["email", "google"];
@@ -13,7 +14,7 @@ router.post(
   "/register",
   asyncHandler(async (req, res) => {
     const body = req.body;
-    const { email, password, provider } = body;
+    const { email, password, provider, masterKey, masterKeyIv } = body;
 
     // validate request
     if (!providers.includes(provider)) {
@@ -25,13 +26,18 @@ router.post(
 
     // store user on google cloud
     if (provider === "email") {
-      const [newUser] = await User.createWithEmail(email, password);
+      const [newUser] = await User.createWithEmail(
+        email,
+        password,
+        masterKey,
+        masterKeyIv
+      );
       const [mutationResults] = newUser.mutationResults;
       const [path] = mutationResults.key.path;
       const id = path.id.toString();
 
       const token = createToken(id);
-      return res.json({ access_token: token });
+      return res.json({ accessToken: token, masterKey, masterKeyIv });
     } else {
       return res.send(await User.createWithProvider(email, provider));
     }
@@ -50,9 +56,12 @@ router.post(
     } else {
       user = null; // Google auth integration?
     }
-
-    const token = createToken(user.id);
-    return res.json({ access_token: token });
+    const token = createToken(user[Datastore.KEY].id);
+    return res.json({
+      accessToken: token,
+      masterKey: user.masterKey,
+      masterKeyIv: user.masterKeyIv,
+    });
   })
 );
 
