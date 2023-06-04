@@ -18,5 +18,3 @@ Please note that this is just a personal project I developed for learning purpos
 Files are encrypted and decrypted on the user's device, ensuring that data remains secure throughout the entire journey between the user and server. This project's implementation takes advantage of AES (Advanced Encryption Standard), a symmetric encryption algorithm.
 
 A master key for encrypting/decrypting files is generated during the creation of a user account. To support a user logging in on multiple devices, the master key is encrypted using the user's password with a key derivation function (PBKDF2) and uploaded to the server. As such, the master key can only be decrypted by clients who have logged in. Even if server data is compromised, the master key cannot be decrypted because passwords are not directly stored on the server.
-- Authentication implemented through bcrypt password encryption and temporary access tokens
-- Files stored securely on Google Cloud Drive
