@@ -7,7 +7,7 @@ const url = BACKEND_URL + "/file/";
 function useFileActions() {
   const { accessToken, masterKey } = useAuth();
 
-  function requestOptions(method, body) {
+  function requestOptions(method: string, body?: BodyInit) {
     return {
       method,
       headers: {
@@ -27,7 +27,7 @@ function useFileActions() {
     upload,
   };
 
-  async function get(name) {
+  async function get(name: string) {
     const { metadata } = await getMetadata(name);
     const response = await fetch(
       url + name + "/content",
@@ -42,7 +42,7 @@ function useFileActions() {
       const encryptedContents = await response.arrayBuffer();
       const decryptedFile = await decryptSymmetric(
         encryptedContents,
-        masterKey,
+        masterKey!,
         iv
       );
       return new Blob([decryptedFile]);
@@ -51,9 +51,9 @@ function useFileActions() {
     }
   }
 
-  async function getMetadata(name) {
+  async function getMetadata(name: string) {
     const response = await fetch(url + name, requestOptions("GET"));
-    return response.json();
+    return await response.json();
   }
 
   async function getAllMetadata() {
@@ -61,7 +61,7 @@ function useFileActions() {
     return await response.json();
   }
 
-  async function getShared(id) {
+  async function getShared(id: string) {
     const response = await fetch(
       url + "public/" + id + "/content",
       requestOptions("GET")
@@ -69,27 +69,27 @@ function useFileActions() {
     return await response.blob();
   }
 
-  async function getSharedMetadata(id) {
+  async function getSharedMetadata(id: string) {
     const response = await fetch(url + "public/" + id, requestOptions("GET"));
     return await response.json();
   }
 
-  async function remove(name) {
+  async function remove(name: string) {
     return await fetch(url + name, requestOptions("DELETE"));
   }
 
-  async function share(name) {
+  async function share(name: string) {
     return await fetch(url + "share/" + name, requestOptions("POST"));
   }
 
-  async function upload(file, isPrivate) {
+  async function upload(file: File, isPrivate: boolean) {
     const formData = new FormData();
 
     if (isPrivate) {
       const fileBuffer = await file.arrayBuffer();
       const { encryptedContents, iv } = await encryptSymmetric(
         fileBuffer,
-        masterKey
+        masterKey!
       );
 
       const fileBlob = new Blob([encryptedContents]);

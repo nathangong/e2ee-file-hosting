@@ -17,19 +17,19 @@ export default function SharedFile() {
 
   async function fetchFile() {
     try {
-      const metadata = await file.getSharedMetadata(id);
+      const metadata = await file.getSharedMetadata(id!);
       setFileName(metadata.metadata.name);
     } catch (e) {}
     setLoading(false);
   }
 
   async function downloadFile() {
-    const blob = await file.getShared(id);
+    const blob = await file.getShared(id!);
     download(blob, fileName);
   }
 
   return (
-    <Page name="Download Shared File" loading={loading}>
+    <Page name="Download Shared File" loading={loading} authenticated={false}>
       {fileName ? (
         <div className="mb-4 text-lg">
           You have been shared{" "}

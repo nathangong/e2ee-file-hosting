@@ -1,23 +1,32 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useUserActions } from "../actions/user";
 import { useAuth } from "../contexts/AuthContext";
 import { decryptMasterKey } from "../services/encryption";
 
-export default function Signin() {
+export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const { setAccessToken, setMasterKey } = useAuth();
   const user = useUserActions();
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    // password validation
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match");
+    }
+    if (password.length < 6) {
+      return setError("Password needs to be at least 6 characters");
+    }
 
     setLoading(true);
     setError("");
-    user.login(email, password).then(async (data) => {
+    user.register(email, password).then(async (data) => {
       if (data.error) {
         setError(data.error);
       } else {
@@ -26,7 +35,6 @@ export default function Signin() {
           password,
           new Uint8Array(data.masterKeyIv).buffer
         );
-
         setAccessToken(data.accessToken);
         setMasterKey(masterKey);
       }
@@ -45,18 +53,18 @@ export default function Signin() {
               alt="Workflow"
             />
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Sign in to GongDrive
+              Sign up for GongDrive
             </h2>
           </div>
           {error && (
             <div
-              class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
               role="alert"
             >
-              <span class="block sm:inline">{error}</span>
-              <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+              <span className="block sm:inline">{error}</span>
+              <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
                 <svg
-                  class="fill-current h-6 w-6 text-red-500"
+                  className="fill-current h-6 w-6 text-red-500"
                   role="button"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
@@ -94,12 +102,28 @@ export default function Signin() {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                   placeholder="Password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="sr-only">
+                  Confirm Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
                 />
               </div>
             </div>
@@ -111,8 +135,8 @@ export default function Signin() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  value={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.value)}
+                  value={rememberMe.toString()}
+                  onChange={(e) => setRememberMe(Boolean(e.target.value))}
                   defaultChecked={true}
                 />
                 <label
@@ -122,13 +146,12 @@ export default function Signin() {
                   Remember me
                 </label>
               </div>
-
               <div className="text-sm">
                 <a
-                  href="/signup"
+                  href="/signin"
                   className="font-medium text-indigo-600 hover:text-indigo-500"
                 >
-                  Don't have an account?
+                  Already have an account?
                 </a>
               </div>
             </div>
@@ -136,10 +159,11 @@ export default function Signin() {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                value="Submit"
                 disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                Sign in
+                Sign up
               </button>
             </div>
           </form>

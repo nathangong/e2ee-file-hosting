@@ -2,6 +2,15 @@ import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import SelectVisibility from "./SelectVisibility";
 
+interface UploadDialogProps {
+  fileName: string | undefined;
+  show: boolean;
+  onClose: () => void;
+  isPrivate: boolean;
+  onPrivateChange: (isPrivate: boolean) => void;
+  onUpload: () => void;
+}
+
 export default function UploadDialog({
   fileName,
   show,
@@ -9,7 +18,7 @@ export default function UploadDialog({
   isPrivate,
   onPrivateChange,
   onUpload,
-}) {
+}: UploadDialogProps) {
   return (
     <Transition.Root show={show} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
@@ -50,7 +59,7 @@ export default function UploadDialog({
                       <div className="mt-2">
                         <SelectVisibility
                           visibility={isPrivate ? "Private" : "Public"}
-                          setVisibility={(visibility) => {
+                          onVisibilityChange={(visibility) => {
                             if (visibility === "Private") {
                               onPrivateChange(true);
                             } else {

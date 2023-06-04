@@ -5,15 +5,15 @@ export async function generateMasterKey() {
   const key = await window.crypto.subtle.generateKey(
     {
       name: "AES-CBC",
-      length: 256, // Key size in bits
+      length: 256,
     },
-    true, // Extractable
-    ["encrypt", "decrypt"] // Key usages
+    true,
+    ["encrypt", "decrypt"]
   );
   return key;
 }
 
-export async function encryptMasterKey(masterKey, password) {
+export async function encryptMasterKey(masterKey: CryptoKey, password: string) {
   const rawMasterKey = await window.crypto.subtle.exportKey("raw", masterKey);
 
   const passwordKey = await deriveKeyFromPassword(password);
@@ -25,9 +25,9 @@ export async function encryptMasterKey(masterKey, password) {
 }
 
 export async function decryptMasterKey(
-  encryptedMasterKey,
-  password,
-  initializationVector
+  encryptedMasterKey: ArrayBuffer,
+  password: string,
+  initializationVector: ArrayBufferLike
 ) {
   const passwordKey = await deriveKeyFromPassword(password);
   const rawMasterKey = await decryptSymmetric(
@@ -38,35 +38,31 @@ export async function decryptMasterKey(
   const masterKey = window.crypto.subtle.importKey(
     "raw",
     rawMasterKey,
-    {
-      name: "AES-CBC",
-    },
+    { name: "AES-CBC" },
     true,
     ["encrypt", "decrypt"]
   );
   return masterKey;
 }
 
-export async function exportKey(key) {
+export async function exportKey(key: CryptoKey) {
   const exportedKey = await window.crypto.subtle.exportKey("jwk", key);
   return JSON.stringify(exportedKey);
 }
 
-export async function importKey(key) {
+export async function importKey(key: string) {
   const parsedKey = await JSON.parse(key);
   const importedKey = await crypto.subtle.importKey(
     "jwk",
     parsedKey,
-    {
-      name: "AES-CBC",
-    },
+    { name: "AES-CBC" },
     true,
     ["encrypt", "decrypt"]
   );
   return importedKey;
 }
 
-async function deriveKeyFromPassword(password) {
+async function deriveKeyFromPassword(password: string) {
   const encoder = new TextEncoder();
 
   const importedKey = await window.crypto.subtle.importKey(
@@ -92,7 +88,7 @@ async function deriveKeyFromPassword(password) {
   return key;
 }
 
-export async function encryptSymmetric(data, key) {
+export async function encryptSymmetric(data: ArrayBuffer, key: CryptoKey) {
   const iv = Buffer.from(window.crypto.getRandomValues(new Uint8Array(16)));
 
   const encryptedContents = await window.crypto.subtle.encrypt(
@@ -111,9 +107,9 @@ export async function encryptSymmetric(data, key) {
 }
 
 export async function decryptSymmetric(
-  encryptedData,
-  key,
-  initializationVector
+  encryptedData: ArrayBuffer,
+  key: CryptoKey,
+  initializationVector: ArrayBufferLike
 ) {
   const algorithm = { name: "AES-CBC", iv: initializationVector };
   const decryptedData = await crypto.subtle.decrypt(

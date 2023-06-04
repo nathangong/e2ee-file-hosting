@@ -11,8 +11,8 @@ function App() {
     <BrowserRouter>
       <AuthHandler>
         <Routes>
-          <Route exact path="/" element={<PrivateRoute />}>
-            <Route exact path="/" element={<Home />} />
+          <Route path="/" element={<PrivateRoute />}>
+            <Route path="/" element={<Home />} />
           </Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/signin" element={<Signin />}></Route>

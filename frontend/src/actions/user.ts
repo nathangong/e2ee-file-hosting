@@ -7,7 +7,7 @@ const url = BACKEND_URL + "/user/";
 function useUserActions() {
   const { accessToken } = useAuth();
 
-  function requestOptions(method, body) {
+  function requestOptions(method: string, body?: BodyInit) {
     return {
       method,
       headers: {
@@ -29,7 +29,7 @@ function useUserActions() {
     return await response.json();
   }
 
-  async function login(email, password) {
+  async function login(email: string, password: string) {
     const body = JSON.stringify({
       email: email,
       password: password,
@@ -39,7 +39,7 @@ function useUserActions() {
     return await response.json();
   }
 
-  async function register(email, password) {
+  async function register(email: string, password: string) {
     const masterKey = await generateMasterKey();
     const { encryptedMasterKey, iv } = await encryptMasterKey(
       masterKey,

@@ -1,18 +1,33 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
-import { db, retrieveMasterKey, saveMasterKey } from "../services/db";
+import Cookies, { CookieAttributes } from "js-cookie";
+import {
+  deleteMasterKey,
+  retrieveMasterKey,
+  saveMasterKey,
+} from "../services/db";
 import { exportKey, importKey } from "../services/encryption";
 
-export const AuthContext = React.createContext();
+export interface AuthState {
+  accessToken: string | null;
+  setAccessToken: (accessToken: string | null) => void;
+  masterKey: CryptoKey | null;
+  setMasterKey: (masterKey: CryptoKey) => void;
+}
+
+export const AuthContext = React.createContext<AuthState>({} as AuthState);
 
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-export function AuthHandler({ children }) {
-  const [accessToken, setAccessToken] = useState("loading");
-  const [masterKey, setMasterKey] = useState();
+interface AuthHandlerProps {
+  children: React.ReactNode;
+}
+
+export function AuthHandler({ children }: AuthHandlerProps) {
+  const [accessToken, setAccessToken] = useState<string | null>("loading");
+  const [masterKey, setMasterKey] = useState<CryptoKey | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,27 +38,29 @@ export function AuthHandler({ children }) {
     if (accessToken && accessToken !== "loading") {
       navigate("../", { replace: true });
 
-      const cookieOptions = {
+      const cookieOptions: CookieAttributes = {
         expires: 30,
         secure: true,
         sameSite: "strict",
       };
 
       Cookies.set("accessToken", accessToken, cookieOptions);
-      exportKey(masterKey).then((exportedKey) => {
-        saveMasterKey(exportedKey);
-      });
+      if (masterKey) {
+        exportKey(masterKey).then((exportedKey) => {
+          saveMasterKey(exportedKey);
+        });
+      }
     } else if (accessToken === "loading") {
       const tokenCookie = Cookies.get("accessToken");
       retrieveMasterKey().then(async (exportedKey) => {
         if (exportedKey) setMasterKey(await importKey(exportedKey));
-        setAccessToken(tokenCookie);
+        setAccessToken(tokenCookie!);
       });
     } else {
       Cookies.remove("accessToken");
-      db.masterKey.delete(1);
+      deleteMasterKey();
     }
-  }, [accessToken, navigate]);
+  }, [accessToken, navigate, location.pathname, masterKey]);
 
   const value = {
     accessToken,

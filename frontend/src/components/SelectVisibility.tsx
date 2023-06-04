@@ -1,10 +1,17 @@
-import * as React from "react";
-
 import { LockClosedIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 
-const options = ["Private", "Public"];
+const options = ["Private", "Public"] as const;
+type Visibility = (typeof options)[number];
 
-export default function SelectVisibility({ visibility, setVisibility }) {
+interface SelectVisibilityProps {
+  visibility: Visibility;
+  onVisibilityChange: (visibility: "Private" | "Public") => void;
+}
+
+export default function SelectVisibility({
+  visibility,
+  onVisibilityChange,
+}: SelectVisibilityProps) {
   return (
     <>
       <h2 className="font-medium text-base">Visibility</h2>
@@ -15,7 +22,7 @@ export default function SelectVisibility({ visibility, setVisibility }) {
           return selected ? (
             <button
               className="flex items-center rounded-md py-[0.4375rem] pl-2 pr-2 text-sm font-semibold lg:pr-3 bg-white shadow"
-              onClick={() => setVisibility(option)}
+              onClick={() => onVisibilityChange(option)}
               key={option}
             >
               <Icon className="h-5 w-5 flex-none stroke-indigo-500" />
@@ -24,7 +31,7 @@ export default function SelectVisibility({ visibility, setVisibility }) {
           ) : (
             <button
               className="flex items-center rounded-md py-[0.4375rem] pl-2 pr-2 text-sm font-semibold lg:pr-3"
-              onClick={() => setVisibility(option)}
+              onClick={() => onVisibilityChange(option)}
               key={option}
             >
               <Icon className="h-5 w-5 flex-none stroke-gray-600" />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, FormEvent, ChangeEvent } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import formatBytes from "../util/formatBytes";
 import download from "downloadjs";
@@ -19,21 +19,31 @@ import { useUserActions } from "../actions/user";
 import { Tooltip } from "react-tooltip";
 import UploadDialog from "../components/UploadDialog";
 
+interface Entity {
+  name: string;
+  updated: string;
+  size: number;
+  metadata: {
+    iv: string;
+    id: string;
+  };
+}
+
 const TOAST_OPTIONS = {
   position: toast.POSITION.BOTTOM_RIGHT,
   hideProgressBar: true,
 };
 
 export default function Home() {
-  const [entities, setEntities] = useState([]);
-  const [email, setEmail] = useState();
+  const [entities, setEntities] = useState<Entity[]>([]);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [focused, setFocused] = useState();
+  const [focused, setFocused] = useState<Entity | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState();
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isPrivate, setPrivate] = useState(true);
   const { accessToken } = useAuth();
-  const hiddenFileInput = useRef(null);
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const file = useFileActions();
   const user = useUserActions();
 
@@ -42,11 +52,12 @@ export default function Home() {
 
     setLoading(true);
     fetchData();
+    // eslint-disable-next-line
   }, [accessToken]);
 
   async function fetchData() {
     const files = await file.getAllMetadata();
-    files.map((entity) => {
+    files.map((entity: any) => {
       entity.name = entity.name.split("/").slice(1).join("/");
       return entity;
     });
@@ -59,12 +70,14 @@ export default function Home() {
   }
 
   async function handleDownload() {
+    if (!focused) return;
+
     const blob = await file.get(focused.name);
     download(blob, focused.name);
   }
 
-  async function handleDelete(event) {
-    event.preventDefault();
+  async function handleDelete() {
+    if (!focused) return;
 
     await toast.promise(
       file.remove(focused.name),
@@ -79,14 +92,17 @@ export default function Home() {
     fetchData();
   }
 
-  async function handleFileChange(event) {
-    const uploadedFile = event.target.files[0];
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files || !files.length) return;
+
+    const file = files[0];
     const twoMb = 2e6;
-    if (uploadedFile.size > twoMb) {
+    if (file.size > twoMb) {
       toast.error("File size cannot be greater than 2 MB", TOAST_OPTIONS);
       return;
     }
-    setUploadedFile(event.target.files[0]);
+    setUploadedFile(file);
     setPrivate(true);
     setDialogOpen(true);
     event.target.value = "";
@@ -94,6 +110,7 @@ export default function Home() {
 
   async function handleUpload() {
     setDialogOpen(false);
+    if (!uploadedFile) return;
 
     if (entities.some((entity) => entity.name === uploadedFile.name)) {
       return toast.error(
@@ -114,8 +131,8 @@ export default function Home() {
     fetchData();
   }
 
-  function copyShareLink(event) {
-    event.preventDefault();
+  function copyShareLink() {
+    if (!focused) return;
 
     const baseUrl = window.location.href;
     const id = focused.metadata.id;
@@ -125,7 +142,7 @@ export default function Home() {
   }
 
   if (accessToken === "loading") {
-    return;
+    return <></>;
   }
 
   return (
@@ -153,7 +170,7 @@ export default function Home() {
         />
         <button
           className="group relative flex align-middle inline-block justify-center mb-4 mr-2 py-2 pl-3 pr-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          onClick={() => hiddenFileInput.current.click()}
+          onClick={() => hiddenFileInput.current?.click()}
         >
           <ArrowUpOnSquareIcon
             className="block h-6 w-6 mr-2"
@@ -232,7 +249,7 @@ export default function Home() {
                   )}
                   {entities.map((entity) => (
                     <tr
-                      key={entity.id}
+                      key={entity.metadata.id}
                       tabIndex={0}
                       onFocus={() => setFocused(entity)}
                       onBlur={() => setFocused(null)}

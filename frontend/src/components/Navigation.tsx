@@ -1,7 +1,11 @@
 import { Disclosure } from "@headlessui/react";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function Navigation(props) {
+interface NavigationProps {
+  authenticated: boolean;
+}
+
+export default function Navigation({ authenticated }: NavigationProps) {
   const auth = useAuth();
 
   return (
@@ -20,7 +24,7 @@ export default function Navigation(props) {
               <div className="ml-4 text-3xl font-bold">GongDrive</div>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-              {props.authenticated && (
+              {authenticated && (
                 <button
                   className="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   onClick={() => {
