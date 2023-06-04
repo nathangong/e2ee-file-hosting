@@ -1,4 +1,4 @@
-# boxdrop (GongDrive)
+# GongDrive
 
 An end-to-end encrypted file hosting service built with a React.js + TailwindCSS frontend, an Express.js backend, and Google Cloud Storage.
 
